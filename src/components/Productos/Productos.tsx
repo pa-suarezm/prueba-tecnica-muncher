@@ -8,10 +8,11 @@ function Productos() {
     <div className={styles.Productos}>
       <div className="container-fluid">
         <div className="row">
-          <div className="col-12">
+          <div className="col-6">
             <FormProductos />
           </div>
         </div>
+        <br />
         <div className='row'>
           <div className='col-12'>
             <TablaProductos />
