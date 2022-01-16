@@ -1,16 +1,61 @@
 import React from 'react';
+import { atom, useRecoilState } from 'recoil';
+import { app } from '../../../App';
+import { getFirestore, collection, addDoc } from 'firebase/firestore/lite';
 import useInputNumber from '../../../hooks/useInputNumber/useInputNumber';
 import useInputText from '../../../hooks/useInputText/useInputText';
 import styles from './FormProductos.module.css';
+import { Button, Form } from 'react-bootstrap';
+
+const productosListState = atom({
+  key: 'productos',
+  default: [] as any[],
+});
+
+/**
+ * Permite enviar el producto ingresado por el usuario a firebase
+ * para ser persistido
+ * @param prod El producto a guardar, viene de la forma {nombre: string, descripcion: string, precio: number}
+ */
+async function uploadProducto(prod: any) {
+  const db = getFirestore(app);
+  const prodsCol = collection(db, 'productos');
+  try {
+    const nuevoDoc = await addDoc(prodsCol, prod);
+    alert(`Se agregó el producto '${prod.nombre}' con éxito.`);
+  } catch (err) {
+    console.log(err);
+    alert(`Ocurrió un error agregando el producto. Por favor intente de nuevo más tarde.`);
+  }
+}
 
 function FormProductos () {
+  const [productos, setProductos] = useRecoilState(productosListState);
+
   const { value: nombre, bind: bindNombre, reset: resetNombre } = useInputText('');
   const { value: descripcion, bind: bindDescripcion, reset: resetDescripcion } = useInputText('');
   const { value: precio, bind: bindPrecio, reset: resetPrecio } = useInputNumber(0);
 
   const handleSubmit = (evt: any) => {
     evt.preventDefault();
-    alert(`Submitting Name ${nombre} ${descripcion} ${precio}`);
+
+    setProductos(
+      [
+        ...productos,
+        {
+          nombre: nombre,
+          descripcion: descripcion,
+          precio: precio
+        }
+      ]
+    );
+
+    uploadProducto({
+      nombre: nombre,
+      descripcion: descripcion,
+      precio: precio
+    });
+
     resetNombre();
     resetDescripcion();
     resetPrecio();
@@ -18,24 +63,26 @@ function FormProductos () {
 
   return (
     <div className={styles.FormProductos}>
-      <form onSubmit={handleSubmit}>
-        <label>
-          Nombre:&nbsp;
-          <input type="text" {...bindNombre} />
-        </label>
-        <br />
-        <label>
-          Descripción:&nbsp;
-          <input type="text" {...bindDescripcion} />
-        </label>
-        <br />
-        <label>
-          Precio:&nbsp;
-          <input type="number" {...bindPrecio} />
-        </label>
-        <br />
-        <input type="submit" value="Crear producto" />
-      </form>
+      <Form onSubmit={handleSubmit}>
+        <Form.Group className="mb-3">
+          <Form.Label>Nombre</Form.Label>
+          <Form.Control type="text" placeholder="e.g. Manzanas" {...bindNombre} />
+        </Form.Group>
+
+        <Form.Group className="mb-3">
+          <Form.Label>Descripción</Form.Label>
+          <Form.Control type="text" placeholder="e.g. Deliciosas manzanas rojas nacionales" {...bindDescripcion} />
+        </Form.Group>
+
+        <Form.Group className="mb-3">
+          <Form.Label>Precio</Form.Label>
+          <Form.Control type="number" placeholder="e.g. 500" {...bindPrecio} />
+        </Form.Group>
+
+        <Button variant="primary" type="submit">
+          Crear producto
+        </Button>
+      </Form>
     </div>
   );
 }
