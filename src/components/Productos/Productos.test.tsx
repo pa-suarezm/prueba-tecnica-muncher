@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import SignIn from './SignIn';
+import Productos from './Productos';
 
 it('It should mount', () => {
   const div = document.createElement('div');
-  ReactDOM.render(<SignIn />, div);
+  ReactDOM.render(<Productos />, div);
   ReactDOM.unmountComponentAtNode(div);
 });

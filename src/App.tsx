@@ -7,12 +7,12 @@ import {
   useRecoilValue,
 } from 'recoil';
 import './App.css';
-import SignIn from './components/SignIn/SignIn';
+import Productos from './components/Productos/Productos';
 
 function App() {
   return (
     <RecoilRoot>
-      <SignIn />
+      <Productos />
     </RecoilRoot>
   );
 }
