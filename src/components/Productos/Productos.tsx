@@ -6,7 +6,6 @@ function Productos() {
 
   return(
     <div className={styles.Productos}>
-      Productos Component
       <FormProductos />
     </div>
   );
