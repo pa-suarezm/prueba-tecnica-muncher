@@ -21,7 +21,7 @@ async function uploadProducto(prod: any) {
   const db = getFirestore(app);
   const prodsCol = collection(db, 'productos');
   try {
-    const nuevoDoc = await addDoc(prodsCol, prod);
+    await addDoc(prodsCol, prod);
     alert(`Se agregó el producto '${prod.nombre}' con éxito.`);
   } catch (err) {
     console.log(err);
