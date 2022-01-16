@@ -1,7 +1,7 @@
-import { collection, getDocs, getFirestore } from 'firebase/firestore/lite';
+import { collection, deleteDoc, doc, getDocs, getFirestore } from 'firebase/firestore/lite';
 import React, { useEffect } from 'react';
-import { Table } from 'react-bootstrap';
-import { atom, useRecoilState, useRecoilValue } from 'recoil';
+import { Button, Table } from 'react-bootstrap';
+import { atom, useRecoilState } from 'recoil';
 import { app } from '../../../App';
 import styles from './TablaProductos.module.css';
 
@@ -36,6 +36,41 @@ function TablaProductos () {
     getProducts();
   }, []);
 
+  const deleteProduct = async (event: any) => {
+    const db = getFirestore(app);
+    const borrar: boolean = window.confirm('¿Está seguro de que desea eliminar el producto? No podrá deshacer esta acción.');
+    if (borrar) {
+      try {
+        await deleteDoc(doc(db, 'productos', event.target.id));
+      } catch (err) {
+        console.log(err);
+        alert('Ocurrió un error eliminando el producto. Por favor intente de nuevo más tarde.');
+      }
+      const indexDeleted = findIndexOfProduct(event.target.id);
+      if (indexDeleted != -1) {
+        const new_prods: any[] = productos.slice(0);
+        new_prods.splice(indexDeleted, 1);
+        setProductos(new_prods);
+      }
+      alert('El producto fue eliminado con éxito.');
+    }
+  }
+
+  const findIndexOfProduct = (id: string): number => {
+    let ans = -1;
+
+    let  i = 0;
+    for (const aux of productos) {
+      if (aux.key == id) {
+        ans = i;
+        break;
+      }
+      i++;
+    }
+
+    return ans;
+  }
+
   return (
     <div className={styles.TablaProductos}>
       <Table striped bordered hover>
@@ -52,6 +87,12 @@ function TablaProductos () {
             </th>
             <th>
               Creado por
+            </th>
+            <th>
+              ID
+            </th>
+            <th>
+              Borrar producto
             </th>
           </tr>
         </thead>
@@ -72,9 +113,17 @@ function TablaProductos () {
                   <td>
                     {e.usuario}
                   </td>
+                  <td>
+                    {e.key}
+                  </td>
+                  <td>
+                    <Button id={e.key} variant="outline-danger" onClick={deleteProduct}>
+                      Eliminar
+                    </Button>
+                  </td>
                 </tr>
                 
-                )) : <tr><td colSpan={4}>No se encontraron datos. Agrega productos con el formulario de arriba.</td></tr>
+                )) : <tr><td colSpan={5}>No se encontraron datos. Agrega productos con el formulario de arriba.</td></tr>
           }
         </tbody>
       </Table>

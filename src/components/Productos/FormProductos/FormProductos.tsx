@@ -12,24 +12,6 @@ const productosListState = atom({
   default: [] as any[],
 });
 
-/**
- * Permite enviar el producto ingresado por el usuario a firebase
- * para ser persistido
- * @param prod El producto a guardar, viene de la forma {nombre: string, descripcion: string, precio: number}
- */
-async function uploadProducto(prod: any) {
-  const db = getFirestore(app);
-  const prodsCol = collection(db, 'productos');
-  try {
-    const resp_doc: any = await addDoc(prodsCol, prod);
-    console.log(resp_doc);
-    alert(`Se agregó el producto '${prod.nombre}' con éxito.`);
-  } catch (err) {
-    console.log(err);
-    alert(`Ocurrió un error agregando el producto. Por favor intente de nuevo más tarde.`);
-  }
-}
-
 function FormProductos () {
   const [productos, setProductos] = useRecoilState(productosListState);
 
@@ -37,24 +19,33 @@ function FormProductos () {
   const { value: descripcion, bind: bindDescripcion, reset: resetDescripcion } = useInputText('');
   const { value: precio, bind: bindPrecio, reset: resetPrecio } = useInputNumber(0);
 
+  const uploadProducto = async (prod: any) => {
+    const db = getFirestore(app);
+    const prodsCol = collection(db, 'productos');
+    try {
+      const resp_doc: any = await addDoc(prodsCol, prod);
+      prod['key'] = resp_doc._key.path.segments[resp_doc._key.path.segments.length - 1] //El id del documento creado en Firebase
+      setProductos(
+        [
+          ...productos,
+          prod
+        ]
+      );
+      alert(`Se agregó el producto '${prod.nombre}' con éxito.`);
+    } catch (err) {
+      console.log(err);
+      alert(`Ocurrió un error agregando el producto. Por favor intente de nuevo más tarde.`);
+    }
+  };
+
   const handleSubmit = (evt: any) => {
     evt.preventDefault();
-
-    setProductos(
-      [
-        ...productos,
-        {
-          nombre: nombre,
-          descripcion: descripcion,
-          precio: precio
-        }
-      ]
-    );
 
     uploadProducto({
       nombre: nombre,
       descripcion: descripcion,
-      precio: precio
+      precio: precio,
+      usuario: 'No registra'
     });
 
     resetNombre();
