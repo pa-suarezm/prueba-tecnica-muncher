@@ -5,7 +5,7 @@ const useInputNumber = (initialValue: any) => {
 
   return {
     value,
-    setValue,
+    set: (new_value: any) => setValue(new_value),
     reset: () => setValue(0),
     bind: {
       value,

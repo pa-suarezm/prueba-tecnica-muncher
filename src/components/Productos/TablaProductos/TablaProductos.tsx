@@ -1,11 +1,13 @@
 /* eslint-disable eqeqeq */
-import { collection, deleteDoc, doc, getDocs, getFirestore } from 'firebase/firestore/lite';
+import { collection, deleteDoc, doc, getDocs, getFirestore, updateDoc } from 'firebase/firestore/lite';
 import React, { useEffect, useState } from 'react';
-import { Button, Modal, Table } from 'react-bootstrap';
+import { Button, Form, Modal, Table } from 'react-bootstrap';
 import { atom, useRecoilState } from 'recoil';
 import { app } from '../../../App';
 import styles from './TablaProductos.module.css';
 import NumberFormat from 'react-number-format';
+import useInputText from '../../../hooks/useInputText/useInputText';
+import useInputNumber from '../../../hooks/useInputNumber/useInputNumber';
 
 const productosListState = atom({
   key: 'productos',
@@ -17,14 +19,60 @@ function TablaProductos () {
 
   /** Variables para el manejo del modal de edición de producto */
   const [show, setShow] = useState(false);
-  const [prodSeleccionado, setProdSeleccionado] = useState('');
+
+  const [prodSeleccionado, setProdSeleccionado] = useState({key: '', nombre: '', descripcion: '', precio: 0, usuario: ''});
+  
+  const { value: nombre, set: setValueNombre, bind: bindNombre, reset: resetNombre } = useInputText('');
+  const { value: descripcion, set: setValueDescripcion, bind: bindDescripcion, reset: resetDescripcion } = useInputText('');
+  const { value: precio, set: setValuePrecio, bind: bindPrecio, reset: resetPrecio } = useInputNumber(0);
+
   const closeModal = () => setShow(false);
   const showModal = (event: any) => {
+    resetNombre();
+    resetDescripcion();
+    resetPrecio();
+
+    setProdSeleccionado(productos[findIndexOfProduct(event.target.id)]);
+
+    setValueNombre(prodSeleccionado.nombre);
+    setValueDescripcion(prodSeleccionado.descripcion);
+    setValuePrecio(prodSeleccionado.precio);
+
     setShow(true);
-    setProdSeleccionado(event.target.id);
   };
+
+  useEffect(() => {
+    setValueNombre(prodSeleccionado.nombre);
+    setValueDescripcion(prodSeleccionado.descripcion);
+    setValuePrecio(prodSeleccionado.precio);
+  }, [show]);
+
   const handleSave = async () => {
+    const updatedProd = {
+      nombre: nombre,
+      descripcion: descripcion,
+      precio: precio
+    };
+    const db = getFirestore(app);
+    const docRef = doc(db, 'productos', prodSeleccionado.key);
+    try {
+      await updateDoc(docRef, updatedProd);
+    } catch (err) {
+      console.log(err);
+      alert('Ocurrió un error actualizando el producto, intenta de nuevo más tarde.');
+      return;
+    }
+    const prods: any[] = productos.slice(0);
+    prods[findIndexOfProduct(prodSeleccionado.key)] = {
+      key: prodSeleccionado.key,
+      nombre: nombre,
+      descripcion: descripcion,
+      precio: precio,
+      usuario: prodSeleccionado.usuario
+    };
+    setProductos(prods);
     closeModal();
+    alert('El producto fue editado con éxito.');
   }
 
   useEffect(() => {
@@ -157,7 +205,23 @@ function TablaProductos () {
           <Modal.Title>Editar producto</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {prodSeleccionado}
+          {prodSeleccionado.nombre}
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Nombre</Form.Label>
+              <Form.Control type="text" placeholder="e.g. Manzanas" {...bindNombre} />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Descripción</Form.Label>
+              <Form.Control type="text" placeholder="e.g. Deliciosas manzanas rojas nacionales" {...bindDescripcion} />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Precio</Form.Label>
+              <Form.Control type="number" placeholder="e.g. 500" min="0" {...bindPrecio} />
+            </Form.Group>
+          </Form>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={closeModal}>
