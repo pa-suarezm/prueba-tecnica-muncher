@@ -68,7 +68,7 @@ function FormProductos () {
 
         <Form.Group className="mb-3">
           <Form.Label>Precio</Form.Label>
-          <Form.Control type="number" placeholder="e.g. 500" {...bindPrecio} />
+          <Form.Control type="number" placeholder="e.g. 500" min="0" {...bindPrecio} />
         </Form.Group>
 
         <Button variant="primary" type="submit">

@@ -1,9 +1,10 @@
 import { collection, deleteDoc, doc, getDocs, getFirestore } from 'firebase/firestore/lite';
-import React, { useEffect } from 'react';
-import { Button, Table } from 'react-bootstrap';
+import React, { useEffect, useState } from 'react';
+import { Button, Modal, Table } from 'react-bootstrap';
 import { atom, useRecoilState } from 'recoil';
 import { app } from '../../../App';
 import styles from './TablaProductos.module.css';
+import NumberFormat from 'react-number-format';
 
 const productosListState = atom({
   key: 'productos',
@@ -12,6 +13,18 @@ const productosListState = atom({
 
 function TablaProductos () {
   const [productos, setProductos] = useRecoilState(productosListState);
+
+  /** Variables para el manejo del modal de edición de producto */
+  const [show, setShow] = useState(false);
+  const [prodSeleccionado, setProdSeleccionado] = useState('');
+  const closeModal = () => setShow(false);
+  const showModal = (event: any) => {
+    setShow(true);
+    setProdSeleccionado(event.target.id);
+  };
+  const handleSave = async () => {
+    closeModal();
+  }
 
   useEffect(() => {
     const getProducts = async () => {
@@ -72,62 +85,88 @@ function TablaProductos () {
   }
 
   return (
-    <div className={styles.TablaProductos}>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>
-              Nombre
-            </th>
-            <th>
-              Descripción
-            </th>
-            <th>
-              Precio
-            </th>
-            <th>
-              Creado por
-            </th>
-            <th>
-              ID
-            </th>
-            <th>
-              Borrar producto
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {
-            productos.length !== 0 ?
-              productos.map((e: any, i) => (
-                <tr key={e.nombre + i}>
-                  <td>
-                    {e.nombre}
-                  </td>
-                  <td>
-                    {e.descripcion}
-                  </td>
-                  <td>
-                    {e.precio}
-                  </td>
-                  <td>
-                    {e.usuario}
-                  </td>
-                  <td>
-                    {e.key}
-                  </td>
-                  <td>
-                    <Button id={e.key} variant="outline-danger" onClick={deleteProduct}>
-                      Eliminar
-                    </Button>
-                  </td>
-                </tr>
-                
-                )) : <tr><td colSpan={5}>No se encontraron datos. Agrega productos con el formulario de arriba.</td></tr>
-          }
-        </tbody>
-      </Table>
-    </div>
+    <>
+      <div className={styles.TablaProductos}>
+        <Table striped bordered hover>
+          <thead>
+            <tr>
+              <th>
+                Nombre
+              </th>
+              <th>
+                Descripción
+              </th>
+              <th>
+                Precio
+              </th>
+              <th>
+                Creado por
+              </th>
+              <th>
+                ID
+              </th>
+              <th>
+                Editar producto
+              </th>
+              <th>
+                Borrar producto
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              productos.length !== 0 ?
+                productos.map((e: any, i) => (
+                  <tr key={e.nombre + i}>
+                    <td>
+                      {e.nombre}
+                    </td>
+                    <td>
+                      {e.descripcion}
+                    </td>
+                    <td>
+                      <NumberFormat thousandSeparator={true} prefix={'$'} value={e.precio} displayType="text" />
+                    </td>
+                    <td>
+                      {e.usuario}
+                    </td>
+                    <td>
+                      {e.key}
+                    </td>
+                    <td>
+                      <Button id={e.key} variant="outline-info" onClick={showModal}>
+                        Editar
+                      </Button>
+                    </td>
+                    <td>
+                      <Button id={e.key} variant="outline-danger" onClick={deleteProduct}>
+                        Eliminar
+                      </Button>
+                    </td>
+                  </tr>
+                  
+                  )) : <tr><td colSpan={5}>No se encontraron datos. Agrega productos con el formulario de arriba.</td></tr>
+            }
+          </tbody>
+        </Table>
+      </div>
+      <Modal show={show} onHide={closeModal}>
+        <Modal.Header closeButton>
+          <Modal.Title>Editar producto</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {prodSeleccionado}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={closeModal}>
+            Cerrar
+          </Button>
+          <Button variant="primary" onClick={handleSave}>
+            Guardar cambios
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </>
   );
 }
 
