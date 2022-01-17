@@ -45,6 +45,7 @@ function TablaProductos () {
     setValueNombre(prodSeleccionado.nombre);
     setValueDescripcion(prodSeleccionado.descripcion);
     setValuePrecio(prodSeleccionado.precio);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [show]);
 
   const handleSave = async () => {
