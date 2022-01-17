@@ -1,3 +1,4 @@
+/* eslint-disable eqeqeq */
 import { collection, deleteDoc, doc, getDocs, getFirestore } from 'firebase/firestore/lite';
 import React, { useEffect, useState } from 'react';
 import { Button, Modal, Table } from 'react-bootstrap';
@@ -47,6 +48,7 @@ function TablaProductos () {
     };
 
     getProducts();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const deleteProduct = async (event: any) => {
